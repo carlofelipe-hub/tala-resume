@@ -1,0 +1,163 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ------------------------------------------------------------------ */
+/* Tala custom theme variables (injected by ThemeProvider at runtime)  */
+/* These are the sun-gold defaults so the page renders before JS.     */
+/* ------------------------------------------------------------------ */
+:root {
+  /* palette */
+  --tala-bg: oklch(0.985 0.008 85);
+  --tala-surface: #ffffff;
+  --tala-ink: oklch(0.22 0.015 60);
+  --tala-muted: oklch(0.55 0.01 60);
+  --tala-faint: oklch(0.75 0.008 60);
+  --tala-rule: oklch(0.90 0.005 85);
+  --tala-accent: oklch(0.78 0.14 75);
+  --tala-accent-ink: oklch(0.35 0.08 60);
+  --tala-accent-wash: oklch(0.95 0.04 75);
+
+  /* typography families — set by next/font CSS vars */
+  --font-display: "DM Serif Display", serif;
+  --font-body: "DM Sans", sans-serif;
+  --font-hand: "Caveat", cursive;
+  --font-mono: "Geist Mono", monospace;
+
+  /* shadcn overrides mapped to Tala tokens */
+  --background: var(--tala-bg);
+  --foreground: var(--tala-ink);
+  --card: var(--tala-surface);
+  --card-foreground: var(--tala-ink);
+  --popover: var(--tala-surface);
+  --popover-foreground: var(--tala-ink);
+  --primary: var(--tala-ink);
+  --primary-foreground: var(--tala-bg);
+  --secondary: var(--tala-surface);
+  --secondary-foreground: var(--tala-ink);
+  --muted: var(--tala-rule);
+  --muted-foreground: var(--tala-muted);
+  --accent: var(--tala-accent);
+  --accent-foreground: var(--tala-accent-ink);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: var(--tala-rule);
+  --input: var(--tala-rule);
+  --ring: var(--tala-accent);
+  --radius: 0.625rem;
+
+  /* sidebar (keeping shadcn happy) */
+  --sidebar: var(--tala-surface);
+  --sidebar-foreground: var(--tala-ink);
+  --sidebar-primary: var(--tala-ink);
+  --sidebar-primary-foreground: var(--tala-bg);
+  --sidebar-accent: var(--tala-rule);
+  --sidebar-accent-foreground: var(--tala-ink);
+  --sidebar-border: var(--tala-rule);
+  --sidebar-ring: var(--tala-accent);
+
+  /* charts */
+  --chart-1: var(--tala-accent);
+  --chart-2: var(--tala-muted);
+  --chart-3: var(--tala-faint);
+  --chart-4: var(--tala-ink);
+  --chart-5: var(--tala-rule);
+}
+
+/* ------------------------------------------------------------------ */
+/* Tailwind v4 theme extension for Tala design tokens                 */
+/* ------------------------------------------------------------------ */
+@theme inline {
+  /* shadcn required */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+
+  /* Tala semantic colors */
+  --color-tala-bg: var(--tala-bg);
+  --color-tala-surface: var(--tala-surface);
+  --color-tala-ink: var(--tala-ink);
+  --color-tala-muted: var(--tala-muted);
+  --color-tala-faint: var(--tala-faint);
+  --color-tala-rule: var(--tala-rule);
+  --color-tala-accent: var(--tala-accent);
+  --color-tala-accent-ink: var(--tala-accent-ink);
+  --color-tala-accent-wash: var(--tala-accent-wash);
+
+  /* Font families */
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-mono);
+  --font-display: var(--font-display);
+  --font-hand: var(--font-hand);
+  --font-heading: var(--font-display);
+
+  /* Radii */
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Animations */
+  --animate-spin: spin 1s linear infinite;
+  --animate-pulse: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-blink: blink 1s step-end infinite;
+  --animate-typing: typing 3.5s steps(40, end), blink 0.75s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes typing {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+/* ------------------------------------------------------------------ */
+/* Base layer                                                          */
+/* ------------------------------------------------------------------ */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-tala-bg text-tala-ink;
+    font-family: var(--font-body);
+  }
+  html {
+    @apply antialiased;
+  }
+}
