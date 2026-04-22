@@ -24,19 +24,15 @@ export function TemplatePicker({ value, onChange }: TemplatePickerProps) {
       <div className="flex flex-col gap-3">
         {TEMPLATES.map((t) => {
           const isActive = value === t.id;
-          const isDisabled = t.id !== "editorial";
-
           return (
             <button
               key={t.id}
-              onClick={() => !isDisabled && onChange(t.id)}
-              disabled={isDisabled}
+              onClick={() => onChange(t.id)}
               className={cn(
                 "text-left rounded-xl border p-3 transition-colors",
                 isActive
                   ? "border-tala-ink bg-tala-bg"
-                  : "border-tala-rule bg-transparent",
-                isDisabled && "opacity-60 cursor-not-allowed"
+                  : "border-tala-rule bg-transparent"
               )}
             >
               {/* Mini preview frame */}
@@ -60,13 +56,7 @@ export function TemplatePicker({ value, onChange }: TemplatePickerProps) {
                     <div className="w-[120px] h-[160px] bg-white border border-tala-rule rounded-sm opacity-50" />
                   </div>
                 )}
-                {isDisabled && (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-[10px] font-mono uppercase tracking-wider bg-tala-surface px-2 py-1 rounded border border-tala-rule">
-                      Coming soon
-                    </span>
-                  </div>
-                )}
+
               </div>
 
               <div className="text-sm font-semibold text-tala-ink">{t.name}</div>
