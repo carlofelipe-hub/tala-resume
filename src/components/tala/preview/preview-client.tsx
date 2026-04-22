@@ -56,7 +56,7 @@ export function PreviewClient({ data }: PreviewClientProps) {
 
         {/* Right: Fine-tune panel */}
         <div className="border-l border-tala-rule bg-tala-surface overflow-auto order-3">
-          <FineTunePanel settings={settings} onChange={setSettings} />
+          <FineTunePanel data={data} settings={settings} onChange={setSettings} />
         </div>
       </div>
     </div>

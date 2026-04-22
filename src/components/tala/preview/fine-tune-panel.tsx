@@ -2,10 +2,11 @@
 
 import { Knob } from "./knob";
 import { AtsScoreBox } from "./ats-score-box";
-import type { PreviewSettings } from "@/types/preview";
+import type { ResumeData, PreviewSettings } from "@/types/preview";
 import { typographyPairings, palettes } from "@/lib/tokens";
 
 interface FineTunePanelProps {
+  data: ResumeData;
   settings: PreviewSettings;
   onChange: (settings: PreviewSettings) => void;
 }
@@ -14,7 +15,7 @@ const DENSITY_OPTIONS = ["compact", "regular", "spacious"];
 const PAPER_OPTIONS = ["letter", "a4"];
 const LANGUAGE_OPTIONS = ["english", "filipino", "bilingual"];
 
-export function FineTunePanel({ settings, onChange }: FineTunePanelProps) {
+export function FineTunePanel({ data, settings, onChange }: FineTunePanelProps) {
   const typographyOptions = Object.keys(typographyPairings);
   const accentOptions = Object.keys(palettes);
 
@@ -59,7 +60,7 @@ export function FineTunePanel({ settings, onChange }: FineTunePanelProps) {
         onChange={(v) => update("language", v)}
       />
 
-      <AtsScoreBox accent={settings.accent} />
+      <AtsScoreBox data={data} settings={settings} />
     </div>
   );
 }
