@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import type { ResumeData } from "@/types/preview";
 import { defaultPreviewSettings, type PreviewSettings } from "@/types/preview";
 import { getFontClasses } from "@/lib/fonts";
 import { TemplatePicker } from "./template-picker";
 import { TalaResumeDoc } from "./tala-resume-doc";
 import { FineTunePanel } from "./fine-tune-panel";
+import { DownloadButton } from "./download-button";
 
 interface PreviewClientProps {
   data: ResumeData;
@@ -17,12 +18,25 @@ export function PreviewClient({ data }: PreviewClientProps) {
 
   const fontClasses = useMemo(() => getFontClasses(settings.typography), [settings.typography]);
 
-  const pageWidth = settings.paper === "a4" ? 595 : 612;
-  // Mobile scale: fit within viewport minus 32px padding
-  const mobileScale = typeof window !== "undefined" ? Math.min(1, (window.innerWidth - 32) / pageWidth) : 1;
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    const calculateScale = () => {
+      const pageWidth = settings.paper === "a4" ? 595 : 612;
+      const newScale = Math.min(1, (window.innerWidth - 32) / pageWidth);
+      setScale(newScale);
+    };
+    calculateScale();
+    window.addEventListener("resize", calculateScale);
+    return () => window.removeEventListener("resize", calculateScale);
+  }, [settings.paper]);
 
   return (
     <div className={fontClasses}>
+      {/* Top bar with download button */}
+      <div className="flex items-center justify-end px-6 py-3 border-b border-tala-rule bg-tala-surface">
+        <DownloadButton data={data} settings={settings} />
+      </div>
       {/* Desktop: 3-column grid. Mobile: single column stack */}
       <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr_320px] min-h-[calc(100vh-64px)]">
         {/* Left: Template picker */}
@@ -36,7 +50,7 @@ export function PreviewClient({ data }: PreviewClientProps) {
             <TalaResumeDoc data={data} settings={settings} scale={1} />
           </div>
           <div className="lg:hidden">
-            <TalaResumeDoc data={data} settings={settings} scale={mobileScale} />
+            <TalaResumeDoc data={data} settings={settings} scale={scale} />
           </div>
         </div>
 
