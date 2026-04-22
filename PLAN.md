@@ -1,210 +1,157 @@
-# Tala Auth + Onboarding — Implementation Plan
+# Preview & Templates — Implementation Plan
 
-## Phase 0: Documentation & Discovery (Complete)
+## Context
 
-### Allowed APIs (from @supabase/ssr docs)
-- `createBrowserClient(url, key)` — for client components
-- `createServerClient(url, key, { cookies: { getAll, setAll } })` — for server components, route handlers, middleware
-- `parseCookieHeader()` — parse cookie strings in middleware
-- `supabase.auth.getUser()` — validate session (NEVER use `getSession()` for protection)
-- `supabase.auth.exchangeCodeForSession(code)` — OAuth callback
-- `supabase.auth.signInWithOtp({ email })` — magic link
-- `supabase.auth.signInWithOAuth({ provider: 'google' })` — Google OAuth
-- `supabase.auth.signOut()` — logout
-
-### Anti-Patterns
-- Do NOT use deprecated `@supabase/auth-helpers-nextjs`
-- Do NOT use `getSession()` for auth verification on server
-- Do NOT use `createMiddlewareClient()`, `createClientComponentClient()`, `createServerComponentClient()`
-
-### Existing Project State
-- Next.js 16.2.4, React 19, Tailwind v4, shadcn/ui
-- 11 Tala components available (TalaButton, TalaInput, TalaChip, TalaAvatar, TalaMeta, TalaProgress, TalaSectionHead, TalaSun, TalaSunBackdrop, TalaRule, ThemeProvider)
-- No middleware.ts exists yet
-- No Supabase packages installed
-- No API routes exist yet
-- Landing page done with nav containing login/get-started CTAs
+The interview flow mines jobs and bullets, but there's no way to see the result as an actual resume. The Preview page is the bridge — it compiles interview data into a live, editable resume document with template selection, fine-tune knobs, ATS scoring, and PDF download.
 
 ---
 
-## Phase 1: Supabase Foundation
+## Phase 0: Types & Data Compilation
 
-### Tasks
-1. **Install dependencies**
-   ```bash
-   npm install @supabase/supabase-js @supabase/ssr
-   ```
+**Goal:** Define the resume data shape and the function that bridges interview → resume.
 
-2. **Create `.env.local.example`** with placeholder keys:
-   ```
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-   ```
+**Create:**
+- `src/types/preview.ts` — `ResumeData`, `PreviewSettings`, template/font/density/accent/paper/language type unions
+- `src/lib/compile-resume.ts` — Pure function `compileResume(profile, jobs, bullets, analysis) → ResumeData`
+  - Maps `InterviewJob[]` + `BulletDraft[]` → experience entries
+  - Pulls contact info from profile + resume analysis
+  - Fills education/skills from analysis if available
 
-3. **Create Supabase client utilities**:
-   - `src/lib/supabase/client.ts` — browser client using `createBrowserClient()`
-   - `src/lib/supabase/server.ts` — server client using `createServerClient()` with `cookies()` from next/headers
-   - `src/lib/supabase/middleware.ts` — `updateSession()` helper for middleware
+**Key types:**
+```
+ResumeData: { name, title, email, phone, location, linkedin?, summary, experience[], education[], skills[] }
+PreviewSettings: { template, displayFont, bodyFont, density, accent, paper, language }
+```
 
-4. **Create `src/middleware.ts`** — calls `updateSession()`, matcher excludes static files
-
-### Verification
-- [ ] `npm run build` passes
-- [ ] Supabase client files export correct functions
-- [ ] Middleware file exists with proper matcher
+**Verify:** Function handles missing data gracefully (empty arrays, placeholder strings).
 
 ---
 
-## Phase 2: Auth Pages
+## Phase 1: TalaResumeDoc Component
 
-### Tasks
-1. **Create auth layout** — `src/app/(auth)/layout.tsx`
-   - Centered card layout with TalaLogo, TalaSunBackdrop
-   - No nav bar (clean auth experience)
+**Goal:** HTML/CSS resume renderer matching the design reference exactly.
 
-2. **Create login page** — `src/app/(auth)/login/page.tsx`
-   - Google OAuth button (TalaButton variant="primary")
-   - Magic link form (TalaInput for email + TalaButton to send)
-   - "Don't have an account? Sign up" link
-   - Uses Tala design system throughout
+**Create:**
+- `src/components/tala/preview/tala-resume-doc.tsx` — 612px wide US Letter doc
+  - Props: `data`, `settings`, `scale?`, `highlight?`
+  - Sections: Header (name + contact), Summary, Experience (per-job bullets), Education, Skills
+  - Inline styles (pixel-precise, maps 1:1 to eventual PDF)
+  - Density multiplier affects margins/padding/line-height
+  - Accent setting controls section label color
+- `src/components/tala/preview/resume-section.tsx` — Reusable section label (monospace, 8.5px, uppercase)
 
-3. **Create signup page** — `src/app/(auth)/signup/page.tsx`
-   - Same as login but with "Already have an account?" link
-   - After signup, redirect to onboarding
-
-4. **Create auth callback route** — `src/app/(auth)/callback/route.ts`
-   - Exchanges OAuth code for session
-   - Checks if user has completed onboarding → redirect to /onboarding or /dashboard
-
-5. **Create auth actions** — `src/app/(auth)/actions.ts`
-   - Server actions for `signInWithOAuth`, `signInWithOtp`, `signOut`
-
-6. **Create magic link confirmation page** — `src/app/(auth)/check-email/page.tsx`
-   - "Check your email" message after magic link sent
-
-### Verification
-- [ ] Login page renders with Tala styling
-- [ ] Google OAuth redirects to Supabase
-- [ ] Magic link sends email
-- [ ] Callback route handles code exchange
-- [ ] Unauthenticated users redirected to /login
+**Reference:** `/tmp/project-resume-builder/project/resume-doc.jsx` for exact styling values.
 
 ---
 
-## Phase 3: Database Schema (Prisma)
+## Phase 2: Preview Page + Layout
 
-### Tasks
-1. **Install Prisma**
-   ```bash
-   npm install prisma @prisma/client
-   npx prisma init
-   ```
+**Goal:** Full preview page with 3-column desktop / single-column mobile.
 
-2. **Create Prisma schema** — `prisma/schema.prisma`
-   ```prisma
-   model Profile {
-     id            String   @id @default(uuid())
-     authId        String   @unique  // Supabase auth.users.id
-     email         String
-     fullName      String?
-     avatarUrl     String?
-     
-     // Onboarding fields
-     goal          String?  // "first-job" | "career-switch" | "promotion" | "ofw"
-     experienceLevel String? // "student" | "entry" | "mid" | "senior"
-     targetRole    String?
-     language      String?  @default("en") // "en" | "fil" | "both"
-     onboardingComplete Boolean @default(false)
-     
-     createdAt     DateTime @default(now())
-     updatedAt     DateTime @updatedAt
-   }
-   ```
+Since `(app)/layout.tsx` has nav + padding that preview doesn't want, use a separate route group `(preview)`.
 
-3. **Add DATABASE_URL to `.env.local.example`**:
-   ```
-   DATABASE_URL=your_supabase_database_url
-   ```
+**Create:**
+- `src/app/(preview)/layout.tsx` — Auth guard + preview header bar (TalaLogo + TalaMeta + "Back to interview" + "Download PDF")
+- `src/app/(preview)/preview/page.tsx` — Server component, fetches profile + latest session + resume analysis, calls `compileResume()`, passes to client
+- `src/components/tala/preview/preview-client.tsx` — Client component managing all state:
+  - `grid grid-cols-1 lg:grid-cols-[280px_1fr_320px]`
+  - Left: TemplatePicker, Center: scaled TalaResumeDoc, Right: FineTunePanel + ATS
+- `src/components/tala/preview/template-picker.tsx` — 4 template cards with 0.32x mini-previews
+- `src/components/tala/preview/fine-tune-panel.tsx` — 6 knob dropdowns + ATS score box
+- `src/components/tala/preview/knob.tsx` — Reusable label + dropdown selector
+- `src/components/tala/preview/ats-score-box.tsx` — Accent-wash card with score + insight
+- `src/components/tala/preview/index.ts` — Barrel export
 
-### Verification
-- [ ] `npx prisma validate` passes
-- [ ] Schema matches onboarding flow needs
+**Reuse:** Auth guard pattern from `src/app/(app)/layout.tsx`, Supabase server client from `src/lib/supabase/server.ts`.
 
 ---
 
-## Phase 4: Onboarding Flow
+## Phase 3: Template Variants
 
-### Tasks
-1. **Create onboarding layout** — `src/app/(app)/onboarding/layout.tsx`
-   - Minimal chrome, TalaProgress bar at top
-   - TalaLogo in corner
+**Goal:** 4 visually distinct templates sharing the same `ResumeData`.
 
-2. **Create onboarding page** — `src/app/(app)/onboarding/page.tsx`
-   - Multi-step form (client component)
-   - 4 steps with smooth transitions:
-     - **Step 1: Goal** — "Ano ang goal mo?" — 4 card options (First job, Career switch, Level up, OFW abroad)
-     - **Step 2: Experience** — "Gaano ka na katagal nagwo-work?" — 4 options (Student, 0-2 years, 3-7 years, 8+ years)
-     - **Step 3: Target Role** — "Anong role ang gusto mo?" — TalaInput text field
-     - **Step 4: Language** — "Paano mo gustong makipag-usap?" — 3 options (English, Filipino, Both)
-   - Back/Next navigation with TalaButton
-   - TalaChip for selection cards
-   - Final step submits to server action → marks onboarding complete → redirects to /dashboard
+**Create:**
+- `src/components/tala/preview/templates/editorial.tsx` — Serif header, monospace labels (default, matches design ref)
+- `src/components/tala/preview/templates/classic.tsx` — Traditional ATS-friendly, sans-serif, bold headers + rules
+- `src/components/tala/preview/templates/modern.tsx` — Two-column sidebar layout
+- `src/components/tala/preview/templates/minimal.tsx` — Clean sans-serif, extra whitespace, centered name
+- `src/components/tala/preview/templates/index.ts` — `getTemplate(name)` factory
 
-3. **Create onboarding server action** — `src/app/(app)/onboarding/actions.ts`
-   - Saves profile with onboarding data via Prisma
-   - Sets `onboardingComplete: true`
-
-### Verification
-- [ ] All 4 steps render and navigate correctly
-- [ ] Selections persist across steps (client state)
-- [ ] Submit creates/updates profile in DB
-- [ ] Redirects to dashboard after completion
+Each receives: `{ data, settings (minus template), highlight? }`.
 
 ---
 
-## Phase 5: Protected Routes & Dashboard Shell
+## Phase 4: PDF Download
 
-### Tasks
-1. **Create app layout** — `src/app/(app)/layout.tsx`
-   - Server component that checks auth via `supabase.auth.getUser()`
-   - Redirects to /login if not authenticated
-   - Redirects to /onboarding if `onboardingComplete === false`
-   - Renders nav with user info + sign out
+**Goal:** Generate downloadable PDF matching on-screen preview.
 
-2. **Create dashboard page** — `src/app/(app)/dashboard/page.tsx`
-   - Placeholder with welcome message using user's name
-   - "Start new resume" CTA (TalaButton)
-   - Empty state for saved resumes
-   - Uses TalaSectionHead, TalaMeta, TalaRule
+**Install:** `@react-pdf/renderer`
 
-3. **Update landing page nav** — `src/app/page.tsx`
-   - Wire "Log in" to `/login`
-   - Wire "Get started — libre" to `/signup`
+**Create:**
+- `src/lib/pdf/register-fonts.ts` — `Font.register()` calls for each display/body font
+- `src/lib/pdf/pdf-resume-doc.tsx` — react-pdf `<Document>` using `<Page>`, `<View>`, `<Text>` matching editorial layout
+- `src/components/tala/preview/download-button.tsx` — Dynamic import of react-pdf, generates blob on click, triggers download
 
-4. **Update middleware** — redirect logic:
-   - Authenticated users hitting /login → /dashboard
-   - Unauthenticated users hitting /dashboard, /onboarding → /login
-
-### Verification
-- [ ] Dashboard only accessible when logged in
-- [ ] Onboarding required before dashboard
-- [ ] Landing page CTAs work
-- [ ] Sign out works and redirects to landing
-- [ ] Middleware redirects work correctly
+**Mitigation:** Lazy-load react-pdf (~400KB) only on download click to keep initial bundle small.
 
 ---
 
-## Phase 6: Final Verification
+## Phase 5: ATS Score
 
-### Checklist
-- [ ] `npm run build` passes with no errors
-- [ ] `npm run lint` passes
-- [ ] Auth flow: landing → signup → callback → onboarding → dashboard
-- [ ] Auth flow: landing → login → callback → dashboard (returning user)
-- [ ] Magic link flow works
-- [ ] Sign out returns to landing
-- [ ] Protected routes redirect correctly
-- [ ] Onboarding data saves to DB
-- [ ] All pages use Tala design system consistently
-- [ ] No hardcoded colors (all via CSS vars)
-- [ ] No deprecated Supabase APIs used
+**Goal:** Client-side heuristic ATS score.
+
+**Create:**
+- `src/lib/ats-score.ts` — `computeAtsScore(data, settings) → { score: number; insight: string }`
+  - Contact completeness (10pts), Summary (10pts), Experience quality (30pts), Education (10pts), Skills (10pts), Template friendliness (15pts), Keyword variety (15pts)
+
+Score updates reactively when data or settings change.
+
+---
+
+## Phase 6: Mobile Polish
+
+- Mobile top bar: TalaMeta "Preview · {template}" + Download button (sm)
+- Resume at 0.58x scale inside overflow container
+- Bottom horizontal-scroll template thumbnails (68x90px wireframe placeholders)
+- Fine-tune knobs via expandable accordion or bottom sheet
+
+---
+
+## Phase 7: Integration
+
+**Modify:**
+- `src/components/tala/interview/interview-client.tsx` — Wire "Preview resume" button → `/preview?session={id}`
+- `src/app/(app)/dashboard/page.tsx` — Link completed resumes → `/preview?session={id}`
+- `src/lib/supabase/middleware.ts` — Add `/preview` to protected routes if not already covered
+
+---
+
+## Execution Order
+
+```
+Phase 0 → Phase 1 → Phase 2 → Phase 3 + Phase 4 + Phase 5 (parallel) → Phase 6 → Phase 7
+```
+
+## Key Files to Reference
+
+| File | Purpose |
+|------|---------|
+| `src/types/interview.ts` | InterviewJob, BulletDraft shapes |
+| `src/types/resume.ts` | ResumeAnalysis shape |
+| `src/app/(app)/layout.tsx` | Auth guard pattern to replicate |
+| `src/lib/tokens.ts` | Design token values (palettes, fonts, density) |
+| `src/components/tala/interview/interview-client.tsx` | Jobs/bullets state, navigation point |
+| `/tmp/project-resume-builder/project/resume-doc.jsx` | Exact resume document styling reference |
+| `/tmp/project-resume-builder/project/screens-desk-b.jsx` | Desktop preview layout reference |
+| `/tmp/project-resume-builder/project/screens-mobile.jsx` | Mobile preview layout reference |
+
+## Verification Checklist
+
+- [ ] Navigate to `/preview` while authenticated → 3-column layout with resume
+- [ ] Switch templates → resume appearance changes
+- [ ] Adjust knobs → font/density/accent updates live
+- [ ] ATS score reflects content completeness
+- [ ] "Download PDF" → produces a matching PDF file
+- [ ] Mobile viewport → stacked layout with scrollable thumbnails
+- [ ] "Back to interview" → returns to interview page
+- [ ] Interview "Preview resume" button → lands on preview with correct data
