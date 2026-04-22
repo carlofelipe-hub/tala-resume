@@ -5,12 +5,20 @@ export interface ResumeFinding {
   severity?: 1 | 2 | 3;
 }
 
+export interface ResumeExperienceItem {
+  role: string;
+  company: string;
+  dates: string | null;
+  description: string | null;
+}
+
 export interface ResumeAnalysis {
   is_resume: boolean;
   rejection_reason?: string;
   major_issues: ResumeFinding[];
   minor_issues: ResumeFinding[];
   positives: ResumeFinding[];
+  experiences: ResumeExperienceItem[];
   summary: string;
 }
 

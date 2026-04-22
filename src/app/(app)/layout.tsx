@@ -24,8 +24,8 @@ export default async function AppLayout({
           <TalaLogo size="sm" />
         </a>
 
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-tala-muted truncate max-w-[200px]">
+        <div className="flex items-center gap-4 flex-wrap">
+          <span className="text-sm text-tala-muted truncate max-w-[120px] sm:max-w-[200px]">
             {user.email}
           </span>
           <SignOutButton />

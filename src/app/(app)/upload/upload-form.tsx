@@ -134,7 +134,7 @@ export function UploadForm({ existingResume }: UploadFormProps) {
           onDragLeave={() => setDragOver(false)}
           onDrop={handleDrop}
           onClick={() => inputRef.current?.click()}
-          className={`rounded-[14px] border-2 border-dashed p-12 flex flex-col items-center justify-center text-center cursor-pointer transition-all ${
+          className={`rounded-[14px] border-2 border-dashed p-6 md:p-12 flex flex-col items-center justify-center text-center cursor-pointer transition-all ${
             dragOver
               ? "border-tala-accent bg-tala-accent-wash/30"
               : file

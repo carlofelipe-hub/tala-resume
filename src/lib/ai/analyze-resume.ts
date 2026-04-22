@@ -71,6 +71,7 @@ Return ONLY valid JSON. No markdown, no code fences, no preamble, no trailing te
   "major_issues": [{ "title": "...", "explanation": "...", "suggestion": "...", "severity": 3 }],
   "minor_issues": [{ "title": "...", "explanation": "...", "suggestion": "...", "severity": 1 }],
   "positives": [{ "title": "...", "explanation": "..." }],
+  "experiences": [{ "role": "...", "company": "...", "dates": "Mar 2023 — Present", "description": "..." }],
   "summary": "..."
 }
 
@@ -82,8 +83,21 @@ If the document is NOT a résumé:
   "major_issues": [],
   "minor_issues": [],
   "positives": [],
+  "experiences": [],
   "summary": ""
 }
+
+## Experiences extraction
+
+Populate \`experiences\` with every real work experience on the resume — jobs, internships, OJT, freelance, part-time, volunteer work. Order from most recent to oldest. Do NOT include education, skills, or certifications.
+
+Each experience object:
+- \`role\`: job title exactly as written (required)
+- \`company\`: company/organization name exactly as written (required)
+- \`dates\`: date range as written, e.g. "Mar 2023 — Present" or "2020 - 2022" (null if not found)
+- \`description\`: 1-sentence summary of what they did, pulled from the resume bullets (null if nothing concrete)
+
+If no work experiences are found, return \`"experiences": []\`.
 
 - 2–5 findings per category; fewer is fine if the resume genuinely doesn't have that many issues. Don't pad.
 - \`title\`: 3–7 words, plain language, no jargon
@@ -100,7 +114,7 @@ export async function analyzeResume(
 ): Promise<ResumeAnalysis> {
   const response = await openai.chat.completions.create({
     model: "gpt-4.1-mini",
-    max_tokens: 2048,
+    max_tokens: 3072,
     response_format: { type: "json_object" },
     messages: [
       { role: "system", content: SYSTEM_PROMPT },
