@@ -1,5 +1,6 @@
 import { EditorialTemplate } from "./editorial";
 import { ClassicTemplate } from "./classic";
+import { ModernTemplate } from "./modern";
 import type { ResumeData } from "@/types/preview";
 import type { PreviewSettings } from "@/types/preview";
 
@@ -9,6 +10,8 @@ export function getTemplate(name: string) {
       return EditorialTemplate;
     case "classic":
       return ClassicTemplate;
+    case "modern":
+      return ModernTemplate;
     default:
       return EditorialTemplate;
   }
@@ -19,4 +22,4 @@ export type TemplateComponent = React.FC<{
   settings: PreviewSettings;
 }>;
 
-export { EditorialTemplate, ClassicTemplate };
+export { EditorialTemplate, ClassicTemplate, ModernTemplate };
