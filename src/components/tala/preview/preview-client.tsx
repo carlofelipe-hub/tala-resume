@@ -7,7 +7,9 @@ import { getFontClasses } from "@/lib/fonts";
 import { TemplatePicker } from "./template-picker";
 import { TalaResumeDoc } from "./tala-resume-doc";
 import { FineTunePanel } from "./fine-tune-panel";
-import { DownloadButton } from "./download-button";
+import { MobilePreviewHeader } from "./mobile-preview-header";
+import { MobileTemplateStrip } from "./mobile-template-strip";
+import { KnobsAccordion } from "./knobs-accordion";
 
 interface PreviewClientProps {
   data: ResumeData;
@@ -33,31 +35,41 @@ export function PreviewClient({ data }: PreviewClientProps) {
 
   return (
     <div className={fontClasses}>
-      {/* Top bar with download button */}
-      <div className="flex items-center justify-end px-6 py-3 border-b border-tala-rule bg-tala-surface">
-        <DownloadButton data={data} settings={settings} />
-      </div>
-      {/* Desktop: 3-column grid. Mobile: single column stack */}
-      <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr_320px] min-h-[calc(100vh-64px)]">
+      {/* Mobile header */}
+      <MobilePreviewHeader data={data} settings={settings} />
+
+      {/* Desktop: 3-column grid */}
+      <div className="hidden lg:grid lg:grid-cols-[280px_1fr_320px] min-h-[calc(100vh-64px)]">
         {/* Left: Template picker */}
-        <div className="border-r border-tala-rule bg-tala-surface overflow-auto order-2 lg:order-1">
+        <div className="border-r border-tala-rule bg-tala-surface overflow-auto">
           <TemplatePicker value={settings.template} onChange={(t) => setSettings({ ...settings, template: t })} />
         </div>
 
         {/* Center: Resume document */}
-        <div className="overflow-auto p-6 lg:p-10 flex justify-center bg-tala-bg order-1 lg:order-2">
-          <div className="hidden lg:block shadow-[0_20px_60px_-12px_rgba(30,20,10,0.15),0_4px_12px_rgba(30,20,10,0.06)]">
+        <div className="overflow-auto p-10 flex justify-center bg-tala-bg">
+          <div className="shadow-[0_20px_60px_-12px_rgba(30,20,10,0.15),0_4px_12px_rgba(30,20,10,0.06)]">
             <TalaResumeDoc data={data} settings={settings} scale={1} />
-          </div>
-          <div className="lg:hidden">
-            <TalaResumeDoc data={data} settings={settings} scale={scale} />
           </div>
         </div>
 
         {/* Right: Fine-tune panel */}
-        <div className="border-l border-tala-rule bg-tala-surface overflow-auto order-3">
+        <div className="border-l border-tala-rule bg-tala-surface overflow-auto">
           <FineTunePanel data={data} settings={settings} onChange={setSettings} />
         </div>
+      </div>
+
+      {/* Mobile: single column */}
+      <div className="lg:hidden">
+        {/* Resume */}
+        <div className="overflow-auto p-4 flex justify-center bg-tala-bg min-h-[50vh]">
+          <TalaResumeDoc data={data} settings={settings} scale={scale} />
+        </div>
+
+        {/* Template strip */}
+        <MobileTemplateStrip value={settings.template} onChange={(t) => setSettings({ ...settings, template: t })} />
+
+        {/* Knobs accordion */}
+        <KnobsAccordion data={data} settings={settings} onChange={setSettings} />
       </div>
     </div>
   );
