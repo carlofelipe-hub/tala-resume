@@ -110,9 +110,17 @@ export function ResumeCard({ resume }: { resume: ResumeRecord }) {
       </div>
 
       <div className="flex items-center justify-between pt-2 border-t border-tala-rule/50">
-        <span className="text-[11px] text-tala-faint font-mono">
-          {formatFileSize(resume.file_size)}
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="text-[11px] text-tala-faint font-mono">
+            {formatFileSize(resume.file_size)}
+          </span>
+          <a
+            href="/preview"
+            className="text-xs font-medium text-tala-accent hover:underline"
+          >
+            Preview résumé
+          </a>
+        </div>
         {resume.status === "complete" && resume.analysis && (
           <div className="flex items-center gap-2 text-[11px] font-mono">
             {resume.analysis.major_issues.length > 0 && (
