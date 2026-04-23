@@ -495,9 +495,12 @@ export function InterviewClient({
         {/* Right panel — desktop always, mobile only on Bullets tab */}
         <div className={cn("h-full overflow-auto flex flex-col", mobileTab !== "bullets" && "hidden lg:block")}>
           <div className="lg:hidden p-4 border-b border-tala-rule bg-tala-surface flex items-center justify-end gap-2 shrink-0">
-            <button className="text-xs font-medium text-tala-muted hover:text-tala-ink transition-colors bg-transparent border-none cursor-pointer">
+            <a
+              href={`/preview?session=${sessionIdRef.current ?? ""}`}
+              className="text-xs font-medium text-tala-muted hover:text-tala-ink transition-colors"
+            >
               Preview résumé
-            </button>
+            </a>
             <button className="text-xs font-medium bg-tala-ink text-tala-bg rounded-full px-3 py-1.5 border-none cursor-pointer hover:opacity-90 transition-opacity">
               Export
             </button>
