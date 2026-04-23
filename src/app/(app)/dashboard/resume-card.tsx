@@ -114,12 +114,16 @@ export function ResumeCard({ resume }: { resume: ResumeRecord }) {
           <span className="text-[11px] text-tala-faint font-mono">
             {formatFileSize(resume.file_size)}
           </span>
-          <a
-            href="/preview"
-            className="text-xs font-medium text-tala-accent hover:underline"
+          <span
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              window.location.href = "/preview";
+            }}
+            className="text-xs font-medium text-tala-accent hover:underline cursor-pointer"
           >
             Preview résumé
-          </a>
+          </span>
         </div>
         {resume.status === "complete" && resume.analysis && (
           <div className="flex items-center gap-2 text-[11px] font-mono">
