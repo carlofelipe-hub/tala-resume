@@ -29,11 +29,17 @@ The user hasn't uploaded a resume. Start from scratch — ask about their work h
     ? `Currently discussing: "${activeJob.role}" at "${activeJob.company}" (id: ${activeJob.id})`
     : "No active job selected.";
 
+  const otherJobs = context.jobs?.filter((j) => j.id !== context.activeJobId) ?? [];
+  const otherJobsSection = otherJobs.length > 0
+    ? `\n- Other jobs in history (DO NOT discuss these unless the user explicitly asks to switch): ${otherJobs.map((j) => `"${j.role}" at "${j.company}"`).join(", ")}`
+    : "";
+
   const phaseContext = context.phase
     ? `\n## Current interview state
 - Phase: ${context.phase}
-- ${activeJobSection}
-- Jobs being mined: ${JSON.stringify(context.jobs ?? [])}
+- ${activeJobSection}${otherJobsSection}
+
+IMPORTANT: You must ONLY ask questions about the CURRENTLY DISCUSSED job above. Do NOT bring up other roles unless the user explicitly switches topics. If the user mentions something that could apply to multiple jobs, assume they mean the currently discussed job.
 
 Progress through phases naturally. Move to "mining" after 2-3 warmup exchanges. Move to "gaps" when all jobs have most mining keys covered. Move to "wrapup" when gaps are addressed.`
     : "";
@@ -91,7 +97,8 @@ Summarize what you've mined. Identify any thin areas. Suggest next steps. Tell t
 - When they mention numbers, confirm them. "You said 30% — is that an exact figure or an estimate?"
 - Keep messages concise. 2-4 sentences per response. Ask ONE question at a time.
 - Track what areas you've covered. Don't re-mine the same ground.
-- **Job-switch rule**: If the active job has changed from the previous turn, acknowledge the switch explicitly (e.g. "Okay, let's dig into your time at [Company] as [Role]...") and ask a fresh opening question about THAT role. Do NOT continue discussing the previous job.
+- **STAY ON TOPIC**: Only discuss the CURRENTLY DISCUSSED job. Do NOT ask about other jobs unprompted. Do NOT say things like "I also see you worked at X" or "How does that compare to your role at Y?" Keep 100% focused on the active job.
+- **Job-switch rule**: ONLY switch jobs when the USER explicitly asks to talk about a different role. If they do, acknowledge the switch (e.g. "Okay, let's dig into your time at [Company] as [Role]...") and ask a fresh opening question about THAT role. Do NOT switch jobs on your own.
 
 ## Output format
 Respond naturally as Tala first. Then, AFTER your conversational response, append a metadata block on a new line in this exact format:
